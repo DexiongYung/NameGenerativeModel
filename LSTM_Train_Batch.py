@@ -127,8 +127,9 @@ def iter_train_dl(dl: DataLoader, epochs: int = ITER, path: str = "Checkpoints/"
                 torch.save({'weights': lstm.state_dict()}, os.path.join(f"{path}{NAME}.path.tar"))
 
 
-def sample(length: int):
+def sample(length: list):
     with torch.no_grad():
+        max_length = length[0]
         lstm_input = indexTensor([[SOS]], 1, IN_CHARS).to(DEVICE)
         lng_input = lengthTestTensor([length]).to(DEVICE)
         lstm_hidden = lstm.initHidden(1)
@@ -136,7 +137,7 @@ def sample(length: int):
         name = ''
         char = SOS
 
-        for i in range(MAX_LENGTH):
+        for i in range(max_length):
             lstm_probs, lstm_hidden = lstm(lstm_input[0], lng_input, lstm_hidden)
             lstm_probs = torch.softmax(lstm_probs, dim=2)
             sample = torch.distributions.categorical.Categorical(lstm_probs).sample()
@@ -180,12 +181,14 @@ save_json(f'Config/{NAME}.json', to_save)
 
 lstm = Decoder(IN_COUNT, HIDDEN_SZ, OUT_COUNT, padding_idx=IN_CHARS.index(PAD), num_layers=NUM_LAYERS,
                embed_size=EMBED_DIM)
-lstm.to(DEVICE)
-criterion = nn.NLLLoss(ignore_index=OUT_CHARS.index(PAD))
-optimizer = torch.optim.Adam(lstm.parameters(), lr=LR)
 
 if args.continue_training == 1:
     lstm.load_state_dict(torch.load(f'Checkpoints/{NAME}.path.tar')['weights'])
+    
+lstm.to(DEVICE)
+
+criterion = nn.NLLLoss(ignore_index=OUT_CHARS.index(PAD))
+optimizer = torch.optim.Adam(lstm.parameters(), lr=LR)
 
 df = pd.read_csv(TRAIN_FILE)
 dl = NameCategoricalDataLoader(df, batch_sz=BATCH_SZ)
