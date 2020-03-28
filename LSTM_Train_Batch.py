@@ -31,7 +31,7 @@ parser.add_argument('--column', help='Column header of data', nargs='?', default
 parser.add_argument('--print', help='Print every', nargs='?', default=50, type=int)
 parser.add_argument('--batch', help='Batch size', nargs='?', default=5000, type=int)
 parser.add_argument('--continue_training', help='Boolean whether to continue training an existing model', nargs='?',
-                    default=0, type=int)
+                    default=1, type=int)
 
 # Parse optional args from command line and save the configurations into a JSON file
 args = parser.parse_args()
@@ -127,16 +127,17 @@ def iter_train_dl(dl: DataLoader, epochs: int = ITER, path: str = "Checkpoints/"
                 torch.save({'weights': lstm.state_dict()}, os.path.join(f"{path}{NAME}.path.tar"))
 
 
-def sample():
+def sample(length: int):
     with torch.no_grad():
         lstm_input = indexTensor([[SOS]], 1, IN_CHARS).to(DEVICE)
+        lng_input = lengthTestTensor([length]).to(DEVICE)
         lstm_hidden = lstm.initHidden(1)
         lstm_hidden = (lstm_hidden[0].to(DEVICE), lstm_hidden[1].to(DEVICE))
         name = ''
         char = SOS
 
         for i in range(MAX_LENGTH):
-            lstm_probs, lstm_hidden = lstm(lstm_input[0], lstm_hidden)
+            lstm_probs, lstm_hidden = lstm(lstm_input[0], lng_input, lstm_hidden)
             lstm_probs = torch.softmax(lstm_probs, dim=2)
             sample = torch.distributions.categorical.Categorical(lstm_probs).sample()
             sample = sample[0]
