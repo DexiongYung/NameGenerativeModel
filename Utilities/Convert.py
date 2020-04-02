@@ -1,5 +1,4 @@
 import torch
-from torch import Tensor
 
 
 def indexTensor(names: list, max_len: int, allowed_chars: list):
@@ -14,19 +13,22 @@ def indexTensor(names: list, max_len: int, allowed_chars: list):
             tensor[j][i] = index
     return tensor
 
-def lengthTensor(names:list):
+
+def lengthTensor(names: list):
     tensor = torch.zeros(len(names)).type(torch.LongTensor)
     for i, name in enumerate(names):
         tensor[i] = len(name)
-    
+
     return tensor
 
-def lengthTestTensor(lengths:list):
+
+def lengthTestTensor(lengths: list):
     tensor = torch.zeros(len(lengths)).type(torch.LongTensor)
     for i, length in enumerate(lengths):
         tensor[i] = length[i]
-    
+
     return tensor
+
 
 def targetsTensor(names: list, max_len: int, allowed_chars: list):
     batch_sz = len(names)

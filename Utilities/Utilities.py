@@ -1,6 +1,7 @@
 import math
-import matplotlib.pyplot as plt
 import time
+
+import matplotlib.pyplot as plt
 
 
 def plot_losses(loss: list, x_label: str, y_label: str, folder: str = "Result", filename: str = None):
