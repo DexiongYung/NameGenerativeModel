@@ -1,22 +1,18 @@
 import argparse
-import datetime
 import json
-import math
 import os
-import pandas as pd
-import random
 import string
-import time
-import torch
-import torch.nn as nn
 from collections import OrderedDict
 from io import open
+
+import pandas as pd
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from Datasets.NameCateDL import NameCategoricalDataLoader
 from Models.Decoder import Decoder
 from Utilities.Convert import *
-from Utilities.Utilities import plot_losses, timeSince
+from Utilities.Utilities import plot_losses
 
 # Optional command line arguments
 parser = argparse.ArgumentParser()
@@ -184,7 +180,7 @@ lstm = Decoder(IN_COUNT, HIDDEN_SZ, OUT_COUNT, padding_idx=IN_CHARS.index(PAD), 
 
 if args.continue_training == 1:
     lstm.load_state_dict(torch.load(f'Checkpoints/{NAME}.path.tar')['weights'])
-    
+
 lstm.to(DEVICE)
 
 criterion = nn.NLLLoss(ignore_index=OUT_CHARS.index(PAD))
