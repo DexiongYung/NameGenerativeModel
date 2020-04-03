@@ -92,13 +92,15 @@ def train(x: str):
 def iter_train(dl: DataLoader, path: str = "Checkpoints/", print_every: int = PRINTS):
     all_losses = []
     total_loss = 0
+    i = 0
 
     for iter in range(1, EPOCH + 1):
         for x in dl:
             name, loss = train(x)
             total_loss += loss
+            i = i + 1
 
-            if iter % print_every == 0:
+            if i % PRINTS == 0:
                 all_losses.append(total_loss / print_every)
                 total_loss = 0
                 plot_losses(all_losses, x_label=f"Iteration of Batch Size: {BATCH_SZ}", y_label="NLLosss",
