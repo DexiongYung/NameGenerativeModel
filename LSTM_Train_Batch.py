@@ -208,5 +208,5 @@ optimizer = torch.optim.Adam(lstm.parameters(), lr=LR)
 
 df = pd.read_csv(TRAIN_FILE)
 ds = NameDataset(df, 'name')
-dl = DataLoader(ds, batch_size=2000, shuffle=True)
+dl = DataLoader(ds, batch_size=512, shuffle=True)
 iter_train(dl)
