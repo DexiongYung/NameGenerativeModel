@@ -35,7 +35,7 @@ parser.add_argument('--column', help='Column header of data',
 parser.add_argument('--print', help='Print every',
                     nargs='?', default=50, type=int)
 parser.add_argument('--batch', help='Batch size',
-                    nargs='?', default=5000, type=int)
+                    nargs='?', default=512, type=int)
 parser.add_argument('--continue_training', help='Boolean whether to continue training an existing model', nargs='?',
                     default=1, type=int)
 
@@ -208,5 +208,5 @@ optimizer = torch.optim.Adam(lstm.parameters(), lr=LR)
 
 df = pd.read_csv(TRAIN_FILE)
 ds = NameDataset(df, 'name')
-dl = DataLoader(ds, batch_size=512, shuffle=True)
+dl = DataLoader(ds, batch_size=BATCH_SZ, shuffle=True)
 iter_train(dl)
