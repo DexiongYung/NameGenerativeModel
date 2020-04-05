@@ -154,16 +154,17 @@ def sample(length: list):
         for i in range(max_length):
             lstm_probs, lstm_hidden = lstm(
                 lstm_input[0], lng_input, lstm_hidden)
-            lstm_probs = torch.softmax(lstm_probs, dim=2)
-            sample = torch.distributions.categorical.Categorical(
-                lstm_probs).sample()
-            sample = sample[0]
+
+            lstm_probs = lstm_probs.reshape(OUT_COUNT)
+            lstm_probs[OUT_CHARS.index(EOS)] = float("-inf")
+            lstm_probs[OUT_CHARS.index(PAD)] = float("-inf")
+            lstm_probs = torch.softmax(lstm_probs, dim=0)
+
+            sample = int(torch.distributions.categorical.Categorical(
+                lstm_probs).sample().item())
             char = OUT_CHARS[sample]
-
-            if sample == OUT_CHARS.index(EOS):
-                break
-
             name += char
+            
             lstm_input = indexTensor([[char]], 1, IN_CHARS).to(DEVICE)
 
         return name
