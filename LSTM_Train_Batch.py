@@ -37,7 +37,7 @@ parser.add_argument('--print', help='Print every',
 parser.add_argument('--batch', help='Batch size',
                     nargs='?', default=512, type=int)
 parser.add_argument('--continue_training', help='Boolean whether to continue training an existing model', nargs='?',
-                    default=1, type=int)
+                    default=0, type=int)
 
 # Parse optional args from command line and save the configurations into a JSON file
 args = parser.parse_args()
