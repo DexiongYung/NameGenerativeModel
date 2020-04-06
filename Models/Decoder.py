@@ -37,7 +37,7 @@ class Decoder(nn.Module):
         - lstm_out: <1 x batch_size x N_LETTER>
         """
         input = self.embed(input)
-        lng_input = self.embed(lng_input)
+        lng_input = self.len_embed(lng_input)
         input = torch.cat((input, lng_input), dim=1)
         lstm_out, hidden = self.lstm(input.unsqueeze(0), hidden)
         lstm_out = self.fc1(lstm_out)
