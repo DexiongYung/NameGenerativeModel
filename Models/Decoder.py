@@ -21,7 +21,7 @@ class Decoder(nn.Module):
         self.embed_size = embed_size
 
         # Initialize LSTM - Notice it does not accept output_size
-        self.len_embed = nn.Embedding(35, embed_size)
+        self.len_embed = nn.Embedding(hidden_size, embed_size)
         self.embed = nn.Embedding(input_size, embed_size)
         self.lstm = nn.LSTM(embed_size * 2, hidden_size, num_layers)
         self.fc1 = nn.Linear(hidden_size, output_size)
