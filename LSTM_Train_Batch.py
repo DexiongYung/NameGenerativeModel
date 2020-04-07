@@ -21,20 +21,20 @@ parser.add_argument('--name', help='Name of the Session', nargs='?', default='fi
 parser.add_argument('--hidden_size', help='Size of the hidden layer of LSTM', nargs='?', default=256, type=int)
 parser.add_argument('--embed_dim', help='Size of embedding dimension', nargs='?', default=32, type=int)
 parser.add_argument('--lr', help='Learning rate', nargs='?', default=0.0005, type=float)
-parser.add_argument('--num_iter', help='Number of iterations', nargs='?', default=200000, type=int)
 parser.add_argument('--num_layers', help='Number of layers', nargs='?', default=5, type=int)
+parser.add_argument('--num_epochs', help='Number of epochs to train for', nargs='?', default=10, type=int)
 parser.add_argument('--train_file', help='File to train on', nargs='?', default='Data/FirstNames.csv', type=str)
 parser.add_argument('--column', help='Column header of data', nargs='?', default='name', type=str)
 parser.add_argument('--print', help='Print every', nargs='?', default=50, type=int)
-parser.add_argument('--batch', help='Batch size', nargs='?', default=5000, type=int)
+parser.add_argument('--batch', help='Batch size', nargs='?', default=256, type=int)
 parser.add_argument('--continue_training', help='Boolean whether to continue training an existing model', nargs='?',
                     default=1, type=int)
 
 # Parse optional args from command line and save the configurations into a JSON file
 args = parser.parse_args()
 NAME = args.name
-ITER = args.num_iter
 NUM_LAYERS = args.num_layers
+NUM_EPOCHS = args.num_epochs
 EMBED_DIM = args.embed_dim
 LR = args.lr
 HIDDEN_SZ = args.hidden_size
@@ -90,39 +90,20 @@ def train(x: list):
     return names, loss.item()
 
 
-def iter_train(dl: NameCategoricalDataLoader, iterations: int = ITER, path: str = "Checkpoints/",
+def iter_train(dl: DataLoader, epochs: int, path: str = "Checkpoints/",
                print_every: int = PRINTS):
     all_losses = []
     total_loss = 0
-
-    for iter in range(1, iterations + 1):
-        x = dl.sample()
-        name, loss = train(x)
-        total_loss += loss
-
-        if iter % print_every == 0:
-            all_losses.append(total_loss / print_every)
-            total_loss = 0
-            plot_losses(all_losses, x_label=f"Iteration of Batch Size: {BATCH_SZ}", y_label="NLLosss", filename=NAME)
-            torch.save({'weights': lstm.state_dict()}, os.path.join(f"{path}{NAME}.path.tar"))
-
-
-def iter_train_dl(dl: DataLoader, epochs: int = ITER, path: str = "Checkpoints/", print_every: int = PRINTS):
-    all_losses = []
-    total_loss = 0
-
-    for iter in range(1, epochs + 1):
-        for x in dl:
+    for e in range(epochs):
+        for i, x in enumerate(dl):
             name, loss = train(x)
             total_loss += loss
 
-            if iter % print_every == 0:
+            if i % print_every == 0:
                 all_losses.append(total_loss / print_every)
                 total_loss = 0
-                plot_losses(all_losses, x_label=f"Iteration of Batch Size: {BATCH_SZ}", y_label="NLLosss",
-                            filename=NAME)
+                plot_losses(all_losses, x_label=f"Iteration of Batch Size: {BATCH_SZ}", y_label="NLLosss", filename=NAME)
                 torch.save({'weights': lstm.state_dict()}, os.path.join(f"{path}{NAME}.path.tar"))
-
 
 def sample(length: list):
     with torch.no_grad():
@@ -195,12 +176,21 @@ def weights_for_balanced_length(df: pd.DataFrame, length_probs: list) -> list:
     # Probability of sampling a row is equal to P(row name length) * P(row name | row name length)
     weights = [0] * len(df)
     for i in range(len(df)):
-        weights[i] = length_probs[df.iloc[i]['length']] * df.iloc[i]['p_name_given_length']
+        weights[i] = length_probs[len(df.iloc[i]['name'])-1] * df.iloc[i]['p_name_given_length']
     return weights
 
-sample_weights = weights_for_balanced_length(df, [0.02]*2+[0.16]*4+[0.08]*4)
+sample_weights = weights_for_balanced_length(df, [1/10] * 10)
+
 sampler = WeightedRandomSampler(sample_weights, len(sample_weights), replacement=True)
-dl = DataLoader(df, batch_size=BATCH_SZ, sampler=sampler, shuffle=False)
+from torch.utils.data import Dataset
+class NameDataset(Dataset):
+    def __init__(self, df):
+        self.df = df
+    def __len__(self):
+        return len(self.df)
+    def __getitem__(self, index):
+        return self.df.iloc[index]['name']
+dl = DataLoader(NameDataset(df), batch_size=BATCH_SZ, sampler=sampler, shuffle=False)
 #####
 
-iter_train(dl)
+iter_train(dl, NUM_EPOCHS)

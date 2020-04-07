@@ -13,22 +13,23 @@ import pandas as pd
 CSV_PATH = 'Data/LastNames.csv'
 
 df = pd.read_csv(CSV_PATH)
-df = df[:500000]
+df = df[:550000]
 df = df[['name','count']]
-df = df[df['name'].apply(lambda x: len(x) < 10)]
-df['length'] = 0
-df['p_given_length'] = 0.
+df = df[df['name'].apply(lambda x: len(x) <= 10)]
+df = df[:500000]
+df['p_name_given_length'] = 0
 length_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 for i in range(len(df)):
     if i%1000 == 0: print(f"Loop 1 Iteration: {i}")
     length = len(df.iloc[i]['name'])
-    df['length'] = length
-    length_counts[length-1] += 1
+    length_counts[length-1] += df.iloc[i]['count']
+
+print(f"Length Counts: {length_counts}")
 
 for i in range(len(df)):
     if i%1000 == 0: print(f"Loop 2 Iteration: {i}")
     length = len(df.iloc[i]['name'])
-    df['p_name_given_length'] = df.iloc[i]['count']/length_counts[length-1]
+    df.iloc[i,df.columns.get_loc('p_name_given_length')] = df.iloc[i]['count']/length_counts[length-1]
 
 df.to_csv(CSV_PATH, index=False)
