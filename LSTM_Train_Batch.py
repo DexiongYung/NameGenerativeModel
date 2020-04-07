@@ -8,6 +8,7 @@ from io import open
 import pandas as pd
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import WeightedRandomSampler
 
 from Datasets.NameCateDL import NameCategoricalDataLoader
 from Models.Decoder import Decoder
@@ -179,7 +180,7 @@ lstm = Decoder(IN_COUNT, HIDDEN_SZ, OUT_COUNT, padding_idx=IN_CHARS.index(PAD), 
                embed_size=EMBED_DIM)
 
 if args.continue_training == 1:
-    lstm.load_state_dict(torch.load(f'Checkpoints/{NAME}.path.tar')['weights'])
+    lstm.load_state_dict(torch.load(f'Checkpoints/{NAME}.path.tar', map_location=DEVICE)['weights'])
 
 lstm.to(DEVICE)
 
@@ -187,5 +188,19 @@ criterion = nn.NLLLoss(ignore_index=OUT_CHARS.index(PAD))
 optimizer = torch.optim.Adam(lstm.parameters(), lr=LR)
 
 df = pd.read_csv(TRAIN_FILE)
-dl = NameCategoricalDataLoader(df, batch_sz=BATCH_SZ)
+
+#dl = NameCategoricalDataLoader(df, batch_sz=BATCH_SZ)
+#####
+def weights_for_balanced_length(df: pd.DataFrame, length_probs: list) -> list:
+    # Probability of sampling a row is equal to P(row name length) * P(row name | row name length)
+    weights = [0] * len(df)
+    for i in range(len(df)):
+        weights[i] = length_probs[df.iloc[i]['length']] * df.iloc[i]['p_name_given_length']
+    return weights
+
+sample_weights = weights_for_balanced_length(df, [0.02]*2+[0.16]*4+[0.08]*4)
+sampler = WeightedRandomSampler(sample_weights, len(sample_weights), replacement=True)
+dl = DataLoader(df, batch_size=BATCH_SZ, sampler=sampler, shuffle=False)
+#####
+
 iter_train(dl)

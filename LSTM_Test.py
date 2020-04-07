@@ -55,6 +55,7 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 name = config['session_name']
 lstm = Decoder(config['input_sz'], config['hidden_size'], config['output_sz'], padding_idx=config['input'].index(config['PAD']), num_layers=config['num_layers'], embed_size=config['embed_dim'])
 lstm.load_state_dict(torch.load(f'Checkpoints/{name}.path.tar', map_location=torch.device('cpu'))['weights'])
+lstm.eval()
 
 for _ in range(args.sample):
     print(sample([args.length]))
