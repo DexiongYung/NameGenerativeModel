@@ -10,7 +10,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from Datasets.NameDataset import NameDataset
-from Models.BiLSTM import BiLSTM
+from Models.LSTM import LSTM
 from Utilities.Convert import *
 from Utilities.Utilities import plot_losses
 
@@ -37,7 +37,7 @@ parser.add_argument('--print', help='Print every',
 parser.add_argument('--batch', help='Batch size',
                     nargs='?', default=250, type=int)
 parser.add_argument('--continue_training', help='Boolean whether to continue training an existing model', nargs='?',
-                    default=1, type=int)
+                    default=0, type=int)
 
 # Parse optional args from command line and save the configurations into a JSON file
 args = parser.parse_args()
@@ -173,7 +173,7 @@ to_save = {
 
 save_json(f'Config/{NAME}.json', to_save)
 
-lstm = BiLSTM(IN_COUNT, HIDDEN_SZ, OUT_COUNT, padding_idx=IN_CHARS.index(PAD), num_layers=NUM_LAYERS,
+lstm = LSTM(IN_COUNT, HIDDEN_SZ, OUT_COUNT, padding_idx=IN_CHARS.index(PAD), num_layers=NUM_LAYERS,
               embed_size=EMBED_DIM)
 lstm.to(DEVICE)
 criterion = nn.NLLLoss(ignore_index=OUT_CHARS.index(PAD))

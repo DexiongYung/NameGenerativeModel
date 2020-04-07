@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class BiLSTM(nn.Module):
+class LSTM(nn.Module):
     """
     Accept hidden layers as an argument <num_layer x batch_size x hidden_size> for each hidden and cell state.
     At every forward call, output probability vector of <batch_size x output_size>.
@@ -13,7 +13,7 @@ class BiLSTM(nn.Module):
 
     def __init__(self, input_size: int, hidden_size: int, output_size: int, padding_idx: int, embed_size: int = 8,
                  num_layers: int = 4, drop_out: float = 0.2):
-        super(BiLSTM, self).__init__()
+        super(LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -21,8 +21,8 @@ class BiLSTM(nn.Module):
         self.embed_size = embed_size
 
         self.embed = nn.Embedding(input_size, embed_size)
-        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, bidirectional=True)
-        self.fc1 = nn.Linear(hidden_size * 2, output_size)
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers)
+        self.fc1 = nn.Linear(hidden_size, output_size)
         self.dropout = nn.Dropout(drop_out)
         self.softmax = nn.LogSoftmax(dim=2)
 
@@ -48,5 +48,5 @@ class BiLSTM(nn.Module):
         return lstm_out, hidden
 
     def initHidden(self, batch_size):
-        return (torch.zeros(self.num_layers * 2, batch_size, self.hidden_size),
-                torch.zeros(self.num_layers * 2, batch_size, self.hidden_size))
+        return (torch.zeros(self.num_layers, batch_size, self.hidden_size),
+                torch.zeros(self.num_layers, batch_size, self.hidden_size))
