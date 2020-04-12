@@ -197,12 +197,10 @@ to_save = {
 save_json(f'Config/{NAME}.json', to_save)
 
 lstm = Decoder(IN_COUNT, HIDDEN_SZ, OUT_COUNT, padding_idx=IN_CHARS.index(PAD), num_layers=NUM_LAYERS,
-               embed_size=EMBED_DIM)
+               embed_size=EMBED_DIM).to(DEVICE)
 
 if args.continue_training == 1:
     lstm.load_state_dict(torch.load(f'Checkpoints/{NAME}.path.tar')['weights'])
-
-lstm.to(DEVICE)
 
 criterion = nn.NLLLoss(ignore_index=OUT_CHARS.index(PAD))
 optimizer = torch.optim.Adam(lstm.parameters(), lr=LR)
